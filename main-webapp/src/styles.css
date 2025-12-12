@@ -1,0 +1,265 @@
+/* Refined Professional Styles */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+:root {
+  --primary-color: #4f46e5;      /* Deep Purple */
+  --success-color: #10b981;      /* Emerald Green */
+  --warning-color: #f59e0b;      /* Amber Yellow */
+  --danger-color: #ef4444;       /* Red */
+  --text-primary: #1f2937;       /* Dark Gray Text */
+  --text-secondary: #4b5563;     /* Medium Gray Text */
+  --bg-light: #ffffff;           /* Pure White Background for Cards */
+  --bg-dark: #3730a3;            /* Header/Sentinel Blue */
+  --bg-page: #f9fafb;            /* Off-White Page Background */
+}
+
+body {
+  font-family: 'Inter', system-ui, Arial, sans-serif;
+  margin: 0;
+  background: var(--bg-page);
+  color: var(--text-primary);
+}
+
+.app-root {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
+  background: var(--bg-dark);
+  color: white;
+  padding: 15px 25px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.header .tagline {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* Layout & Cards */
+
+.container {
+  padding: 0;
+  box-shadow: none;
+  background: none;
+}
+
+.grid-main {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+.card {
+  padding: 20px;
+  border-radius: 10px;
+  background: var(--bg-light);
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  margin-bottom: 20px;
+}
+
+.card h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+/* Status Indicators */
+
+.grid-status {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.status-card {
+  text-align: center;
+  border-radius: 8px;
+  padding: 15px 10px;
+  background-color: var(--bg-light);
+  border: 1px solid #f3f4f6;
+  box-shadow: none;
+}
+
+.status-card h4 {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-weight: 400;
+}
+
+.status-indicator {
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: inline-block;
+}
+.status-clear { background: #d1fae5; color: var(--success-color); }
+.status-unlocked { background: #fef3c7; color: var(--warning-color); }
+.status-locked { background: #fee2e2; color: var(--danger-color); }
+.status-disarmed { background: #e5e7eb; color: var(--text-secondary); }
+
+/* Remote Control Buttons */
+
+.controls-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.btn {
+  padding: 12px 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-door-lock { background-color: var(--danger-color); }
+.btn-door-lock:hover { background-color: #b91c1c; box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4); }
+
+.btn-door-unlock { background-color: var(--warning-color); }
+.btn-door-unlock:hover { background-color: #d97706; box-shadow: 0 4px 8px rgba(245, 158, 11, 0.4); }
+
+.btn-alarm-disarm { background-color: var(--success-color); }
+.btn-alarm-disarm:hover { background-color: #059669; box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4); }
+
+/* Camera & Logs */
+
+.camera-preview {
+  background-color: #f0f1f3;
+  border: 1px dashed #d1d5db;
+  text-align: center;
+  height: 200px;
+  line-height: 200px;
+  color: var(--text-secondary);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.camera-preview img {
+  width: 100%;
+  height: auto;
+  min-height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.log-list {
+  list-style: none;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.log-list li {
+  padding: 5px 0;
+  border-bottom: 1px dotted #e5e7eb;
+  font-size: 0.8rem;
+}
+.log-list li:last-child { border-bottom: none; }
+
+/* Real-Time Alert Bar */
+
+.alert-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 15px;
+  text-align: center;
+  font-weight: 600;
+  z-index: 1000;
+  transition: transform 0.3s ease-out;
+  transform: translateY(-100%);
+}
+
+.alert-bar.visible { transform: translateY(0); }
+.alert-bar.danger { background-color: var(--danger-color); color: white; }
+.alert-bar.warning { background-color: var(--warning-color); color: var(--text-primary); }
+
+/* Passcode Screen */
+
+.passcode-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  padding: 60px;
+  background: var(--bg-light);
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  max-width: 400px;
+  margin: 100px auto;
+}
+.passcode-screen h2 { margin-top:0; color:var(--primary-color); }
+.passcode-screen input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 1.2rem;
+}
+.passcode-screen button {
+  padding: 10px 20px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Voice Enrollment (Theme Update Only!) */
+
+.voice-enroll {
+  margin-top: 10px;
+}
+
+.voice-buttons {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.voice-buttons .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  background-color: #f3f4f6 !important;
+  color: var(--text-secondary) !important;
+  border-color: #d1d5db !important;
+}
+
+/* Updated Theme for Enroll & Verify Buttons */
+.voice-btn-enroll,
+.voice-btn-verify {
+  background-color: rgba(79, 70, 229, 0.4) !important;
+  color: white !important;
+  border: 1px solid rgba(79, 70, 229, 0.6) !important;
+}
+
+.voice-btn-enroll:hover:not(:disabled),
+.voice-btn-verify:hover:not(:disabled) {
+  background-color: rgba(79, 70, 229, 0.55) !important;
+  box-shadow: 0 4px 8px rgba(79, 70, 229, 0.4);
+}
