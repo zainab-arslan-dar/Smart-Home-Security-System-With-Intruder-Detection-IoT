@@ -7,7 +7,7 @@ const THINGSPEAK_TALKBACK_URL = "https://api.thingspeak.com/talkbacks/";
 const POLLING_INTERVAL = 10000; // 10 seconds
 
 // Security Configuration
-const MASTER_PASSCODE = "2025!"; // !!! MASTER PASSCODE !!!
+const MASTER_PASSCODE = import.meta.env.MASTER_PASSWORD; // !!! MASTER PASSCODE !!!
 const MIN_VOICE_CONFIDENCE = 0.90; // Minimum required confidence (0.0 to 1.0)
 
 // --- VOICE COMMAND PHRASES (REQUIRED FOR ENROLLMENT/VERIFICATION) ---

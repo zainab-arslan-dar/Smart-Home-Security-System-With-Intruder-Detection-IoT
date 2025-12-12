@@ -10,7 +10,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 # 1. DEFINE THE ABSOLUTE PATH WHERE YOUR C# APP *SAVES* THE FILE.
 # Use 'r' before the string (raw string literal) to handle the Windows backslashes correctly.
-LATEST_IMAGE_PATH = "C:/Users/zaina/OneDrive/Desktop/OV7670_Pictures/terminal_ov7670_pic.bmp"
+LATEST_IMAGE_PATH = "C:/Users/zaina/OneDrive/Desktop/OV7670_Pictures/terminal_testpic5.bmp"
 
 
 # We do NOT need IMAGE_DIR or os.makedirs since the path is absolute and outside the project.
