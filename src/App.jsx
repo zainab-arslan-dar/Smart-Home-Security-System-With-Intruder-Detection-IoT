@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import CameraDisplay from './CameraDisplay'; // <--- ADD THIS IMPORT
 
 // --- GLOBAL CONFIGURATION AND CONSTANTS ---
 const THINGSPEAK_URL = "https://api.thingspeak.com/channels/";
@@ -6,7 +7,7 @@ const THINGSPEAK_TALKBACK_URL = "https://api.thingspeak.com/talkbacks/";
 const POLLING_INTERVAL = 10000; // 10 seconds
 
 // Security Configuration
-const MASTER_PASSCODE = "ENTER_YOUR_MASTER_PASSWORD"; // !!! MASTER PASSCODE !!!
+const MASTER_PASSCODE = "2025!"; // !!! MASTER PASSCODE !!!
 const MIN_VOICE_CONFIDENCE = 0.90; // Minimum required confidence (0.0 to 1.0)
 
 // --- VOICE COMMAND PHRASES (REQUIRED FOR ENROLLMENT/VERIFICATION) ---
@@ -319,10 +320,10 @@ const App = () => {
   const [messageBox, setMessageBox] = useState({ message: '', title: '', onClose: null });
   const [isSendingCommand, setIsSendingCommand] = useState(false);
 
-  // Image State
-  const [imageTimestamp, setImageTimestamp] = useState('--');
-  const [imageLoading, setImageLoading] = useState(false);
-  const [imageSrc, setImageSrc] = useState("https://placehold.co/800x450/b0b0b0/ffffff?text=Waiting+for+Image");
+  // // Image State
+  // const [imageTimestamp, setImageTimestamp] = useState('--');
+  // const [imageLoading, setImageLoading] = useState(false);
+  // const [imageSrc, setImageSrc] = useState("https://placehold.co/800x450/b0b0b0/ffffff?text=Waiting+for+Image");
 
   const prevRfidRef = useRef(null);
   const prevPirRef = useRef(null);
@@ -397,27 +398,27 @@ const App = () => {
     }
   }, [config, fetchWithRetry]);
 
-  const updateCameraFeed = useCallback(async () => {
-    const { dataChannelId } = config;
-    if (!dataChannelId) return;
+  // const updateCameraFeed = useCallback(async () => {
+  //   const { dataChannelId } = config;
+  //   if (!dataChannelId) return;
 
-    const imageUrl = `https://thingspeak.com/channels/${dataChannelId}/widgets/latest_image.png`;
-    setImageLoading(true);
-    const newImageSrc = `${imageUrl}?timestamp=${Date.now()}`;
+  //   const imageUrl = `https://thingspeak.com/channels/${dataChannelId}/widgets/latest_image.png`;
+  //   setImageLoading(true);
+  //   const newImageSrc = `${imageUrl}?timestamp=${Date.now()}`;
 
-    const tempImage = new Image();
-    tempImage.onload = () => {
-      setImageSrc(newImageSrc);
-      setImageTimestamp(`Last Image Time: ${new Date().toLocaleTimeString()} (Refreshed)`);
-      setImageLoading(false);
-    };
-    tempImage.onerror = () => {
-      setImageLoading(false);
-      setImageSrc("https://placehold.co/800x450/b0b0b0/ffffff?text=Image+Load+Failed");
-      setImageTimestamp(`Last Image Time: N/A - Check Widget Setup`);
-    };
-    tempImage.src = newImageSrc;
-  }, [config]);
+  //   const tempImage = new Image();
+  //   tempImage.onload = () => {
+  //     setImageSrc(newImageSrc);
+  //     setImageTimestamp(`Last Image Time: ${new Date().toLocaleTimeString()} (Refreshed)`);
+  //     setImageLoading(false);
+  //   };
+  //   tempImage.onerror = () => {
+  //     setImageLoading(false);
+  //     setImageSrc("https://placehold.co/800x450/b0b0b0/ffffff?text=Image+Load+Failed");
+  //     setImageTimestamp(`Last Image Time: N/A - Check Widget Setup`);
+  //   };
+  //   tempImage.src = newImageSrc;
+  // }, [config]);
 
   const sendCommand = useCallback(async (command) => {
     const { talkBackId, readApiKey } = config;
@@ -727,13 +728,12 @@ const App = () => {
     }
 
     updateStatus();
-    updateCameraFeed();
+  
 
     timerRef.current = setInterval(() => {
       updateStatus();
-      updateCameraFeed();
     }, POLLING_INTERVAL);
-  }, [updateStatus, updateCameraFeed]);
+  }, [updateStatus]);
 
   const saveConfigAndStartMonitoring = () => {
     const dataId = document.getElementById('dataChannelId').value.trim();
@@ -979,33 +979,21 @@ const App = () => {
 
       {/* Column 2: Camera + Voice */}
       <div className="space-y-8">
+      
+      // --- NEW CODE TO INSERT --- //
+    {/* SECTION: CAMERA FEED */}
+    <div className="bg-white rounded-xl shadow-lg p-6">
+      <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+        <HomeIcon className="w-5 h-5 mr-2 text-indigo-500" />
+        Live Camera Snapshot
+      </h3>
+  
+      {/* The CameraDisplay component handles fetching, loading, and refreshing */}
+      <CameraDisplay />
+  
+    </div>
+// --- END OF NEW CODE --- //
 
-        {/* SECTION: CAMERA FEED */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-            <HomeIcon className="w-5 h-5 mr-2 text-indigo-500" />
-            Live Camera Snapshot
-          </h3>
-          <div className="relative mb-3">
-            <img
-              src={imageSrc}
-              alt="Camera Feed"
-              className="w-full rounded-lg border border-gray-200"
-            />
-            {imageLoading && (
-              <div className="absolute inset-0 bg-black bg-opacity-25 flex items-center justify-center text-white text-sm">
-                Loading...
-              </div>
-            )}
-          </div>
-          <p className="text-xs text-gray-500 mb-3">{imageTimestamp}</p>
-          <button
-            onClick={updateCameraFeed}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 transition"
-          >
-            Refresh Snapshot
-          </button>
-        </div>
 
         {/* SECTION: VOICE CONTROL */}
         <div className="bg-white rounded-xl shadow-lg p-6">
