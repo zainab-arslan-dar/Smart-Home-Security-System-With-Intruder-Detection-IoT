@@ -1,0 +1,148 @@
+#include <SPI.h>    
+#include <MFRC522.h> 
+#include <Arduino.h>
+#include <Servo.h>
+
+// PINS
+int trigPin = 5;
+int echoPin = 4;
+int BUZZER_PIN = 7;
+int RST_PIN = 8;
+int SS_PIN  = 10;
+int PIR_PIN_1 = 2;
+
+// SYSTEM MODES
+int MODE_OFF = 0, MODE_ON = 1, MODE_ALARM = 2, MODE_EXIT_TIMER = 3;
+int currentState = MODE_ON;
+
+// TIMERS
+long EXIT_DELAY_TIME_MS = 10000;
+long EXIT_BUZZ_TOGGLE_MS = 500;
+long lastExitBuzzerToggleTime = 0;
+
+// BUZZER
+int ALARM_FREQUENCY = 1000;
+int EXIT_FREQUENCY = 440;
+
+// SERVO
+Servo servo1;
+int SERVO1_CLOSED = 90, SERVO1_OPEN = 160;
+Servo servo2;
+int SERVO2_CLOSED = 150, SERVO2_OPEN = 90;
+
+
+// RFID
+MFRC522 myRFID(SS_PIN, RST_PIN);
+byte masterTagUID[] = {0xFC, 0x1F, 0x35, 0x03};
+
+long timerStartTime = 0;
+long lastSensorPrintTime = 0;
+
+// ===================== FUNCTIONS =====================
+
+long readUltrasonic() {
+  digitalWrite(trigPin, LOW); delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH); delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  long duration = pulseIn(echoPin, HIGH);
+  return duration / 58;
+}
+
+void setMode(int newMode) {
+  if (currentState != newMode) {
+    noTone(BUZZER_PIN);
+    currentState = newMode;
+    if (newMode == MODE_OFF) Serial.println("System OFF (Disarmed).");
+    else if (newMode == MODE_ON) Serial.println("Security ON (Armed).");
+    else if (newMode == MODE_ALARM) {
+      Serial.println("!!! ALARM ACTIVE !!!");
+      tone(BUZZER_PIN, ALARM_FREQUENCY);
+    }
+    else if (newMode == MODE_EXIT_TIMER) {
+      Serial.println("10 SECOND EXIT COUNTDOWN STARTED.");
+      servo1.write(SERVO1_OPEN); servo2.write(SERVO1_OPEN);
+    }
+  }
+}
+
+void readRFIDKey() {
+  if (!myRFID.PICC_IsNewCardPresent() || !myRFID.PICC_ReadCardSerial()) return;
+
+  // Check master tag
+  bool master = true;
+  for(int i=0;i<myRFID.uid.size;i++){
+    if(myRFID.uid.uidByte[i] != masterTagUID[i]) master=false;
+  }
+
+  if(master){
+    Serial.println("ACCESS GRANTED");  // <-- NEW LINE
+    if(currentState==MODE_OFF){
+        timerStartTime=millis(); 
+        setMode(MODE_EXIT_TIMER);
+    } else setMode(MODE_OFF);
+  } else if(currentState!=MODE_OFF) setMode(MODE_ALARM);
+
+
+  noTone(BUZZER_PIN);
+  myRFID.PICC_HaltA(); myRFID.PCD_StopCrypto1();
+  delay(500);
+}
+
+void checkIntrusion() {
+  int pir = digitalRead(PIR_PIN_1);
+  long distance = readUltrasonic();
+  if(pir==1) {Serial.println("PIR Intruder detected!"); setMode(MODE_ALARM);}
+  if(distance>0 && distance<20) {Serial.println("ULTRASONIC Intruder detected!"); setMode(MODE_ALARM);}
+}
+
+void checkAlarmClear() {
+  int pir = digitalRead(PIR_PIN_1);
+  long distance = readUltrasonic();
+  if(pir==0 && distance>20) {Serial.println("Area clear. Re-arming system."); setMode(MODE_ON);}
+}
+
+void runExitTimer() {
+  long currentTime=millis();
+  if(currentTime-lastExitBuzzerToggleTime>=EXIT_BUZZ_TOGGLE_MS){
+    lastExitBuzzerToggleTime=currentTime;
+    tone(BUZZER_PIN, EXIT_FREQUENCY, 100);
+  }
+  if(currentTime-timerStartTime>=EXIT_DELAY_TIME_MS){
+    servo1.write(SERVO1_CLOSED); servo2.write(SERVO1_CLOSED);
+    setMode(MODE_ON);
+  }
+}
+
+// ===================== SETUP =====================
+void setup() {
+  Serial.begin(9600);
+  SPI.begin(); myRFID.PCD_Init();
+  pinMode(BUZZER_PIN, OUTPUT); pinMode(PIR_PIN_1, INPUT);
+  pinMode(trigPin, OUTPUT); pinMode(echoPin, INPUT);
+  servo1.attach(3); servo2.attach(9); servo1.write(SERVO1_CLOSED); servo2.write(SERVO1_CLOSED);
+  Serial.println("--- System Initialized ---");
+  setMode(currentState);
+}
+
+// ===================== LOOP =====================
+void loop() {
+  readRFIDKey();
+  long distance = readUltrasonic();
+  int pirState = digitalRead(PIR_PIN_1);
+
+  // Send numeric line ONLY for T-Beam
+  Serial.print(pirState); Serial.print(","); Serial.println(distance);
+
+  // Debug messages
+  if(millis()-lastSensorPrintTime>=500){
+    lastSensorPrintTime=millis();
+    Serial.print("[SENSORS] PIR="); Serial.print(pirState);
+    Serial.print(" | ULTRASONIC="); Serial.print(distance); Serial.println("cm");
+  }
+
+  if(currentState==MODE_ON) checkIntrusion();
+  else if(currentState==MODE_ALARM) checkAlarmClear();
+  else if(currentState==MODE_EXIT_TIMER) runExitTimer();
+
+  delay(50);
+}

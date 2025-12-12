@@ -1,0 +1,142 @@
+#include <WiFi.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+const char* ssid = "your wifi";
+const char* password = "your wifi password";
+String apiKey = "your write API key";
+const char* server = "api.thingspeak.com";
+
+WiFiClient client;
+unsigned long lastUpdateTime = 0;
+const long UPDATE_INTERVAL = 20000;
+
+// RFID status variable
+int rfidStatus = 0;
+
+// OLED message control
+String currentMessage = "";
+unsigned long messageStartTime = 0;
+unsigned long messageDuration = 0;
+
+void setup() {
+  Serial.begin(9600);
+  Wire.begin(21, 22);
+
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(WHITE);
+  display.setCursor(0, 0);
+  display.println("Connecting WiFi...");
+  display.display();
+
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.println("WiFi Connected!");
+  display.display();
+  delay(1000);
+}
+
+// Function to update OLED message
+void showMessage(String msg, unsigned long duration_ms) {
+  currentMessage = msg;
+  messageStartTime = millis();
+  messageDuration = duration_ms;
+
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.println(msg);
+  display.display();
+}
+
+void loop() {
+
+  // ===== READ ARDUINO DATA =====
+  if (Serial.available()) {
+    String arduinoData = Serial.readStringUntil('\n');
+    arduinoData.trim();
+
+    Serial.println("Received: " + arduinoData);
+
+    // ==================================================
+    // 🔥 RFID STATUS DETECTION
+    // ==================================================
+    if (arduinoData.indexOf("ACCESS GRANTED") != -1) rfidStatus = 1;
+    else if (arduinoData.indexOf("System OFF") != -1) rfidStatus = 2;
+    else if (arduinoData.indexOf("System ON") != -1) rfidStatus = 3;
+    else if (arduinoData.indexOf("ALARM ACTIVE") != -1) rfidStatus = 4;
+
+    // ===== DISPLAY HANDLING =====
+    if (arduinoData.indexOf("System ON") != -1) {
+      showMessage("System ON", 5000);
+    }
+    else if (arduinoData.indexOf("System OFF") != -1) {
+      showMessage("System OFF", 7000);
+    }
+    else if (arduinoData.indexOf("ALARM ACTIVE") != -1) {
+      showMessage("Intrusion Detected!", 0xFFFFFFFF); // infinite
+    }
+    else if (arduinoData.indexOf("ACCESS GRANTED") != -1) {
+      showMessage("Access Granted\nWelcome Home", 0xFFFFFFFF); // infinite
+    }
+
+    // ===== THINGSPEAK SENSOR DATA SEND =====
+    if (arduinoData.indexOf("[SENSORS]") != -1) {
+
+      int pirIndex = arduinoData.indexOf("PIR=");
+      int ultraIndex = arduinoData.indexOf("ULTRASONIC=");
+
+      if (pirIndex != -1 && ultraIndex != -1) {
+
+        String pirValue = arduinoData.substring(pirIndex + 4, arduinoData.indexOf(" ", pirIndex + 4));
+        String ultrasonicValue = arduinoData.substring(ultraIndex + 11, arduinoData.indexOf("c", ultraIndex + 11));
+
+        // Send RFID + sensor data every UPDATE_INTERVAL regardless of change
+        if (millis() - lastUpdateTime >= UPDATE_INTERVAL) {
+          lastUpdateTime = millis();
+
+          if (client.connect(server, 80)) {
+            String url = "/update?api_key=" + apiKey +
+                         "&field1=" + pirValue +
+                         "&field2=" + String(rfidStatus) +
+                         "&field3=" + ultrasonicValue;
+
+            Serial.println("Sending to ThingSpeak:");
+            Serial.println(url);  // debug print
+
+            client.print(String("GET ") + url + 
+                         " HTTP/1.1\r\nHost: " + server + "\r\nConnection: close\r\n\r\n");
+
+            client.stop();
+          } else {
+            Serial.println("Connection failed!");
+          }
+        }
+      }
+    }
+  }
+
+  // ===== CHECK MESSAGE TIMER =====
+  if (currentMessage.length() > 0 && messageDuration != 0xFFFFFFFF) {
+    if (millis() - messageStartTime >= messageDuration) {
+      currentMessage = "";
+      display.clearDisplay();
+      display.display();
+    }
+  }
+
+  delay(50);
+}
