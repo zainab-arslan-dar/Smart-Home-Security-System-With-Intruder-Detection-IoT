@@ -2,6 +2,12 @@
 
 Our Intelligent Home Monitoring System boosts home security using IoT technology. It detects intrusions, verifies access using RFID, and triggers alarms with visual alerts on OLED displays and automated servo‑controlled doors. The system supports remote monitoring via cloud connectivity, creating a smart and affordable home security solution.
 
+## Author
+**Zainab Arslan Dar** – Main Developer
+
+## Contributors
+- Rabia Abdul Bint
+- Raghad Barmem
 ---
 
 ## 🛠️ Tech Stack
