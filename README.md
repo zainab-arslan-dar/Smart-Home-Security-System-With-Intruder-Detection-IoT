@@ -28,7 +28,7 @@ Our Intelligent Home Monitoring System boosts home security using IoT technology
 The repository contains multiple modules, including:
 
 - **Arduino Sketches:** Microcontroller code for sensors and actuators.  
-- **Web App / UI:** Browser interface for remote monitoring and control.  
+- **Web App / UI:** User-friendly Browser interface for remote monitoring and control.  
 - **Server / Cloud Integration:** Script for handling alerts and data over the internet.
 
 
