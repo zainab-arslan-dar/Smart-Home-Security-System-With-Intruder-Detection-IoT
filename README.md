@@ -4,6 +4,7 @@ Our Intelligent Home Monitoring System boosts home security using IoT technology
 
 ## Author
 **Zainab Arslan Dar** – Main Developer
+**Rabia Abdul** – Contributor
 
 ## Contributors
 - Rabia Abdul Bint
